@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SystemLock 认证管理后台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+                <span class="logo-text">SystemLock</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>仪表盘</span>
+                </a>
+                <a href="#" class="nav-item" data-page="devices">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span>设备管理</span>
+                </a>
+                <a href="#" class="nav-item" data-page="password">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>密码生成</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="server-status">
+                    <span class="status-dot online"></span>
+                    <span>服务器运行中</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <h1 class="page-title" id="pageTitle">仪表盘</h1>
+                <div class="header-actions">
+                    <button class="btn-refresh" id="refreshBtn" onclick="refreshData()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        刷新
+                    </button>
+                </div>
+            </header>
+
+            <div class="content">
+                <section class="page dashboard-page" id="dashboardPage">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon total">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statTotal">0</div>
+                                <div class="stat-label">设备总数</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon online">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statOnline">0</div>
+                                <div class="stat-label">在线设备</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon locked">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statLocked">0</div>
+                                <div class="stat-label">锁定设备</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon today">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="statToday">0</div>
+                                <div class="stat-label">今日新增</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>最近注册设备</h2>
+                            <a href="#" class="link" onclick="navigateTo('devices'); return false;">查看全部 →</a>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>机器码</th>
+                                        <th>状态</th>
+                                        <th>注册时间</th>
+                                        <th>最后在线</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentDevices">
+                                    <tr><td colspan="4" class="empty">加载中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page devices-page hidden" id="devicesPage">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>设备列表</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="toolbar">
+                                <div class="search-box">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                    <input type="text" id="searchInput" placeholder="搜索机器码..." oninput="debouncedSearch()">
+                                </div>
+                                <div class="filter-box">
+                                    <select id="statusFilter" onchange="loadDevices()">
+                                        <option value="">全部状态</option>
+                                        <option value="locked">已锁定</option>
+                                        <option value="unlocked">未锁定</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>机器码</th>
+                                            <th>状态</th>
+                                            <th>注册时间</th>
+                                            <th>最后在线</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="devicesList">
+                                        <tr><td colspan="5" class="empty">加载中...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination" id="pagination">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page password-page hidden" id="passwordPage">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>密码生成器</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="password-generator">
+                                <div class="form-group">
+                                    <label>机器码</label>
+                                    <input type="text" id="genMachineId" placeholder="请输入机器码..." style="width: 100%; padding: 12px; font-size: 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-family: Consolas, monospace;">
+                                </div>
+                                <div class="form-group">
+                                    <button class="btn btn-primary" onclick="generatePassword()" style="width: 100%; padding: 12px; font-size: 15px;">
+                                        生成密码
+                                    </button>
+                                </div>
+                                <div class="password-result hidden" id="passwordResult">
+                                    <div class="result-label">生成的解锁密码</div>
+                                    <div class="result-password" id="resultPassword">ABC12345</div>
+                                    <button class="btn btn-secondary" onclick="copyPassword()" style="margin-top: 12px; width: 100%;">
+                                        复制密码
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="password-hint">
+                                <h3 style="font-size: 14px; color: #374151; margin-bottom: 8px;">使用说明</h3>
+                                <ol style="font-size: 13px; color: #6b7280; padding-left: 20px; line-height: 1.8;">
+                                    <li>用户安装锁屏程序后，锁屏界面会显示机器码</li>
+                                    <li>用户将机器码发送给管理员</li>
+                                    <li>管理员在此页面输入机器码，生成解锁密码</li>
+                                    <li>将密码告知用户，用户输入即可解锁</li>
+                                    <li>解锁后程序会后台运行，定期联网验证状态</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay hidden" id="confirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">确认操作</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">确定要执行此操作吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" id="modalConfirmBtn" onclick="confirmAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast hidden" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
