@@ -1,41 +1,53 @@
 const crypto = require('crypto');
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'my-secret-key-2024';
+const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || '';
+const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '';
 
-let kvClient = null;
-
-function getKV() {
-  if (kvClient) return kvClient;
-  try {
-    const { kv } = require('@vercel/kv');
-    kvClient = kv;
-  } catch (e) {
-    console.error('Failed to load @vercel/kv:', e.message);
-    kvClient = null;
+async function redisCall(...args) {
+  if (!KV_URL || !KV_TOKEN) {
+    console.error('KV URL or Token not configured');
+    return null;
   }
-  return kvClient;
+  try {
+    const res = await fetch(KV_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${KV_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(args)
+    });
+    if (!res.ok) {
+      console.error('Redis call failed:', res.status, res.statusText);
+      return null;
+    }
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    console.error('Redis call error:', e.message);
+    return null;
+  }
 }
 
 async function getMachinesData() {
-  const kv = getKV();
-  if (kv) {
-    try {
-      const data = await kv.get('machines');
-      if (data && Array.isArray(data)) {
-        return { machines: data };
+  try {
+    const data = await redisCall('GET', 'machines');
+    if (data && typeof data === 'string') {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        return { machines: parsed };
       }
-    } catch (e) {
-      console.error('Failed to get machines from KV:', e.message);
     }
+  } catch (e) {
+    console.error('Failed to get machines from KV:', e.message);
   }
   return { machines: [] };
 }
 
 async function saveMachinesData(data) {
-  const kv = getKV();
-  if (!kv) return false;
   try {
-    await kv.set('machines', data.machines || []);
+    await redisCall('SET', 'machines', JSON.stringify(data.machines || []));
     return true;
   } catch (e) {
     console.error('Failed to save machines to KV:', e.message);
