@@ -1,56 +1,49 @@
 const crypto = require('crypto');
+const { Redis } = require('@upstash/redis');
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'my-secret-key-2024';
-const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || '';
-const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '';
 
-async function redisCall(...args) {
-  if (!KV_URL || !KV_TOKEN) {
-    console.error('KV URL or Token not configured');
-    return null;
-  }
+let redisClient = null;
+
+function getRedis() {
+  if (redisClient) return redisClient;
   try {
-    const res = await fetch(KV_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${KV_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(args)
-    });
-    if (!res.ok) {
-      console.error('Redis call failed:', res.status, res.statusText);
+    const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url || !token) {
+      console.error('Redis URL or Token not configured');
       return null;
     }
-    const data = await res.json();
-    return data;
+    redisClient = new Redis({ url, token });
   } catch (e) {
-    console.error('Redis call error:', e.message);
-    return null;
+    console.error('Failed to create Redis client:', e.message);
+    redisClient = null;
   }
+  return redisClient;
 }
 
 async function getMachinesData() {
+  const redis = getRedis();
+  if (!redis) return { machines: [] };
   try {
-    const data = await redisCall('GET', 'machines');
-    if (data && typeof data === 'string') {
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) {
-        return { machines: parsed };
-      }
+    const data = await redis.get('machines');
+    if (data && Array.isArray(data)) {
+      return { machines: data };
     }
   } catch (e) {
-    console.error('Failed to get machines from KV:', e.message);
+    console.error('Failed to get machines from Redis:', e.message);
   }
   return { machines: [] };
 }
 
 async function saveMachinesData(data) {
+  const redis = getRedis();
+  if (!redis) return false;
   try {
-    await redisCall('SET', 'machines', JSON.stringify(data.machines || []));
+    await redis.set('machines', data.machines || []);
     return true;
   } catch (e) {
-    console.error('Failed to save machines to KV:', e.message);
+    console.error('Failed to save machines to Redis:', e.message);
     return false;
   }
 }
